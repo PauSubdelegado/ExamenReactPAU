@@ -5,7 +5,7 @@ import { useFormik } from 'formik'
 import * as Yup from 'yup';
 import axios from 'axios';
 
-const urlApi = import.meta.env.VITE_APP_API_URL;
+const urlApi = import.meta.env.VITE_API_URL;
 
 const validationSchema = Yup.object({
   name: Yup.string().min(3, "El nombre de usuario mínimo debe tener 3 carácteres").max(25, "El nombre de usuario debe tener como máximo 25 carácteres").required('El nombre de usuario es obligatorio'),
@@ -61,7 +61,7 @@ const Registro = () => {
 
   return (
     <>
-      <h1 className='text-black'>Registrarse</h1>
+      <h1>Registrarse</h1>
       <form onSubmit={formik.handleSubmit} noValidate>
         <div className="">
           <label htmlFor="text">Nombre de usuario</label>

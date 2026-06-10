@@ -2,30 +2,34 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 
-const urlApi = import.meta.env.VITE_APP_API_URL;
+const urlApi = import.meta.env.VITE_API_URL;
 
 const AuthContext = createContext(null);
 let logoutTimer;
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
-  const [user, setUsert] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const login = (jwt) => {
     const decoded = jwtDecode(jwt);
 
     localStorage.setItem("token", jwt);
     setToken(jwt);
-    axios.get(`{urlApi}auth/me`, {
-      headers: {
-        Accept : 'application/json',
-        Authorization: `Bearer ${jwt}`
-      }
-    }).then (response => {
-      localStorage.setItem("user", JSON.stringify(response.data.data));
-      setClient(response.data.data);
-    });
-
+    axios
+      .get(`${urlApi}/auth/me`, {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${jwt}`,
+        },
+      })
+      .then((response) => {
+        const userData = response.data.data ?? response.data.user ?? response.data ?? null;
+        localStorage.setItem("user", JSON.stringify(userData));
+        setUser(userData);
+      });
+    //setClient(decoded);
 
     startLogoutTimer(decoded.exp);
   };
@@ -46,23 +50,34 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
-    if (!storedToken) return;
+    if (!storedToken) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const decoded = jwtDecode(storedToken);
 
-      if (decoded.exp * 1000 < Date.now()) return logout();
+      if (decoded.exp * 1000 < Date.now()) {
+        logout();
+        setLoading(false);
+        return;
+      }
 
       setToken(storedToken);
-      setUser(localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null);
+      const rawUser = localStorage.getItem("user");
+      setUser(
+        rawUser && rawUser !== "undefined" && rawUser !== "null"
+          ? JSON.parse(rawUser)
+          : null,
+      );
       startLogoutTimer(decoded.exp);
     } catch {
       logout();
+    } finally {
+      setLoading(false);
     }
-   
-
   }, []);
-  
 
   return (
     <AuthContext.Provider
@@ -70,6 +85,7 @@ export function AuthProvider({ children }) {
         token,
         user,
         isAuthenticated: !!token,
+        loading,
         login,
         logout,
       }}
