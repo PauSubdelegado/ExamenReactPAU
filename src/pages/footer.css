@@ -1,0 +1,6 @@
+.bg-custom-footer {
+  background: #2C1503;
+  color: rgba(245,230,200,0.45);
+  letter-spacing: 0.2px;
+  border-top-color: #5C3210 !important;
+}
